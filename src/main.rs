@@ -11,7 +11,7 @@ fn main() -> Result<()> {
     let crap_ref: Vec<&str> = crap[1..].iter().map(|x| x.as_str()).collect();
     let x = crap_ref.join(" ");
     println!("Got {}", x);
-    let comber = Combinator::new_from_list(&crap_ref)
+    let comber = Combinator::new_from_list(&crap_ref, 1)
         .context("error with word list")?;
     let combos = comber.iter();
     let remaps: Vec<Vec<usize>> = vec![
@@ -24,8 +24,10 @@ fn main() -> Result<()> {
         vec![ 11, 5, 10, 4, 9, 3, 8, 2, 7, 1, 6, 0 ],
         vec![ 5, 11, 4, 10, 3, 9, 2, 8, 1, 7, 0, 6 ],
     ];
+    let combo_iter = combos.into_iter();
+    println!("Trying {} combinations.", combo_iter.size() * (remaps.len() as u64));
     let mut i = 1;
-    for combo in combos {
+    for combo in combo_iter {
         let first_level = comber.words(&combo);
         for remap in remaps.iter() {
             let the_words: Vec<&str> = remap.iter().map(|x| first_level[*x]).collect();

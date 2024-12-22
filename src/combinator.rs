@@ -1,5 +1,5 @@
 use super::spelling::AlternativeTable;
-use anyhow::{Result, Context, anyhow};
+use anyhow::{Result, anyhow};
 use helium_mnemonic::Language;
 
 
@@ -36,6 +36,10 @@ impl RadixIterator {
         }
         r
     }
+
+    pub fn size(&self) -> u64 {
+        self.max
+    }
 }
 
 impl Iterator for RadixIterator {
@@ -52,7 +56,7 @@ impl Iterator for RadixIterator {
 }
 
 impl Combinator {
-    pub fn new_from_list<'a>(list: &Vec<&'a str>) -> Result<Combinator> {
+    pub fn new_from_list<'a>(list: &Vec<&'a str>, distance: usize) -> Result<Combinator> {
         let english = Language::English;
         let ok = list
             .iter()
@@ -61,20 +65,15 @@ impl Combinator {
         if !ok {
             return Err(anyhow!("invalid word in list"))
         }
-        let x = AlternativeTable::new();
+        let x = AlternativeTable::new(distance);
         let mut word_plan: Vec<Vec<String>> = Vec::with_capacity(list.len());
         for word in list {
-            let alternatives = x.alternatives(*word);
-            let mut plan = vec![ (*word).to_owned() ];
-            match alternatives {
-                None => {},
-                Some(alternates) => {
-                    for alternate in alternates {
-                        plan.push((*alternate).to_owned());
-                    }
-                }
-            }
-            word_plan.push(plan);
+            let alternatives: Vec<String> = x.alternatives(*word)
+                .unwrap()
+                .iter()
+                .map(|x| x.to_owned())
+                .collect();
+            word_plan.push(alternatives);
         }
         
         Ok(Combinator {
@@ -107,7 +106,7 @@ mod test {
 
     #[test]
     fn test_one() {
-        let combo = Combinator::new_from_list(&vec![ "derp" ]);
+        let combo = Combinator::new_from_list(&vec![ "derp" ], 1);
         assert!(combo.is_err())
     }
 }

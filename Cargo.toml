@@ -8,3 +8,4 @@ helium-mnemonic = { git = "https://github.com/helium/helium-wallet-rs", package 
 helium-wallet = { git = "https://github.com/helium/helium-wallet-rs", package = "helium-wallet" }
 helium-lib = { git = "https://github.com/helium/helium-wallet-rs", package = "helium-lib" }
 anyhow = "1.0.94"
+fuzzt = "0.3.1"
