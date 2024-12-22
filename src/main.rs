@@ -23,6 +23,8 @@ fn main() -> Result<()> {
         vec![ 5, 4, 3, 2, 1, 0, 11, 10, 9, 8, 7, 6 ],
         vec![ 11, 5, 10, 4, 9, 3, 8, 2, 7, 1, 6, 0 ],
         vec![ 5, 11, 4, 10, 3, 9, 2, 8, 1, 7, 0, 6 ],
+        vec![ 0, 2, 4, 6, 8, 10, 1, 3, 5, 7, 9, 11 ],
+        vec![ 1, 3, 5, 7, 9, 11, 0, 2, 4, 6, 8, 10 ],
     ];
     let combo_iter = combos.into_iter();
     println!("Trying {} combinations.", combo_iter.size() * (remaps.len() as u64));
