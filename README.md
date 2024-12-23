@@ -15,6 +15,53 @@ The recovery method tries exhaustive combinations of these mistakes:
 6. The word list was written down column-wise, but with the
    columns inadvertantly swapped.
 
+# Building
+
+TBD. This is a rust project and can be built with `cargo build --release`.
+
+# Usage
+
+At any time use `-h` or `--help` to get more help for the command. In general,
+execute the command and provide a starting 12-word seed phrase on the command
+line.
+
+Example:
+
+```
+./target/release/helium-wallet-recover abandon benefit clever divide fetch hedgehog lend next pride save stem tunnel
+```
+
+This will run and print out all valid seed phrase combinations that the utility
+can find by trying different spelling and orderings of the phrase.
+
+## Options
+
+Options, if specified, must _precede_ all other command line arguments.
+
+* `-v` / `--verbose` will increase what is printed during the search, showing
+   status messages about internal calculation steps during startup as
+   well as all seed phrase combinations that were tried, even if they don't
+   produce a valid seed phrase checksum.
+
+* `-n` / `--dry-run` will print the number of combinations that will be
+   attempted from the given seed phrase and then exit without making any
+   attempts. (Can be useful to get a sense of how complex the search job
+   will be).
+
+* `-d` will change the spelling distance limit, allowing for wilder spelling
+  mistakes, but at a cost of significantly increasing the search time,
+  possibly beyond the lifetime of the user. Use `-n` to see the consequences
+  of any attempt before attempt in it.
+
+* `-t` / `--target` will tell the tool the what the target public key is,
+  allowing it to stop immediately once it is found, and significantly reducing
+  the printed output and fruitless search time (if found).
+
+  This option is only useful if the user knows the Solana B58 form of the public
+  key for the wallet, which might be known if the user happens to remember
+  the name of their Hotspot and can find the public key of its owning
+  wallet, for example.
+
 ## Misspelling Suggestions
 
 The following table is a list of misspellings of BIP-39 seed phrase words

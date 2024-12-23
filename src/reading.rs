@@ -61,7 +61,6 @@ pub fn generate_readings(num_words: u8) -> Result<Vec<Vec<u8>>> {
 
 #[cfg(test)]
 mod test {
-    use std::fmt;
 
     use super::generate_readings;
 
