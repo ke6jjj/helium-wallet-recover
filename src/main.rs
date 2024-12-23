@@ -1,46 +1,48 @@
 mod spelling;
 mod combinator;
+mod reading;
 
 use combinator::Combinator;
 use helium_lib::keypair::Signer;
+use helium_lib::error::Error;
+use helium_mnemonic::MnmemonicError;
+use reading::generate_readings;
 use std::env::args;
 use anyhow::{Result, Context};
 
+
 fn main() -> Result<()> {
-    let crap: Vec<String> = args().into_iter().collect();
-    let crap_ref: Vec<&str> = crap[1..].iter().map(|x| x.as_str()).collect();
-    let x = crap_ref.join(" ");
-    println!("Got {}", x);
-    let comber = Combinator::new_from_list(&crap_ref, 1)
+    let crap: Vec<String> = 
+        args()
+        .into_iter()
+        .skip(1)
+        .collect();
+    let seed_words: Vec<&str> = crap.iter().map(|x| x.as_str()).collect();
+
+    let spelling_alternatives = Combinator::new_from_list(&seed_words, 1)
         .context("error with word list")?;
-    let combos = comber.iter();
-    let remaps: Vec<Vec<usize>> = vec![
-        vec![ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 ],
-        vec![ 6, 7, 8, 9, 10, 11, 0, 1, 2, 3, 4, 5 ],
-        vec![ 0, 6, 1, 7, 2, 8, 3, 9, 4, 10, 5, 11 ],
-        vec![ 6, 0, 7, 1, 8, 2, 9, 3, 10, 4, 11, 5 ],
-        vec![ 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0 ],
-        vec![ 5, 4, 3, 2, 1, 0, 11, 10, 9, 8, 7, 6 ],
-        vec![ 11, 5, 10, 4, 9, 3, 8, 2, 7, 1, 6, 0 ],
-        vec![ 5, 11, 4, 10, 3, 9, 2, 8, 1, 7, 0, 6 ],
-        vec![ 0, 2, 4, 6, 8, 10, 1, 3, 5, 7, 9, 11 ],
-        vec![ 1, 3, 5, 7, 9, 11, 0, 2, 4, 6, 8, 10 ],
-    ];
-    let combo_iter = combos.into_iter();
-    println!("Trying {} combinations.", combo_iter.size() * (remaps.len() as u64));
+
+    let alternatives = spelling_alternatives.choice_iter();
+    let mistaken_readings = generate_readings(12)?;
+    let total_combinations = alternatives.size() * (mistaken_readings.len() as u64);
+    println!("Trying {} combinations.", total_combinations);
+
     let mut i = 1;
-    for combo in combo_iter {
-        let first_level = comber.words(&combo);
-        for remap in remaps.iter() {
-            let the_words: Vec<&str> = remap.iter().map(|x| first_level[*x]).collect();
-            let goddammit: Vec<String> = the_words.iter().map(|s| (*s).to_owned()).collect();
-            let keypair_res = helium_lib::keypair::Keypair::from_words(goddammit);
-            let x = the_words.join(" ");
-            if keypair_res.is_ok() {
-                let keypair = keypair_res.unwrap();
-                println!("{i}. {}: OK {}", x, keypair.pubkey().to_string());
-            } else {
-                println!("{i}. {}: XX Invalid", x);
+
+    for spelling_vec in alternatives {
+        let words = spelling_alternatives.words(&spelling_vec);
+        for reading_vec in mistaken_readings.iter() {
+            let reading: Vec<String> = 
+                reading_vec
+                .iter()
+                .map(|position| words[*position as usize].to_owned())
+                .collect();
+            let keypair_res = helium_lib::keypair::Keypair::from_words(reading.clone());
+            let phrase = reading.join(" ");
+            match keypair_res {
+                Ok(keypair) => println!("{i}. {}: OK {}", phrase, keypair.pubkey().to_string()),
+                Err(Error::Mnemonic(MnmemonicError::InvalidChecksum)) => println!("{i}. {}: XX Invalid", phrase),
+                other => { other.context("decoding key")?; () }
             }
             i += 1
         }

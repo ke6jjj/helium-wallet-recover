@@ -56,7 +56,7 @@ impl Iterator for RadixIterator {
 }
 
 impl Combinator {
-    pub fn new_from_list<'a>(list: &Vec<&'a str>, distance: usize) -> Result<Combinator> {
+    pub fn new_from_list(list: &Vec<&str>, distance: usize) -> Result<Combinator> {
         let english = Language::English;
         let ok = list
             .iter()
@@ -81,7 +81,10 @@ impl Combinator {
         })
     }
 
-    pub fn iter(&self) -> RadixIterator {
+    /// Yield an iterator which iterates over all the different combinations
+    /// of word choices for the full phrase given, allowing for the number
+    /// plausible mistakes per-word given.
+    pub fn choice_iter(&self) -> RadixIterator {
         let substitions_by_word: Vec<u64> = self
             .plan
             .iter()
@@ -90,6 +93,7 @@ impl Combinator {
         RadixIterator::new(&substitions_by_word)
     }
 
+    /// Construct a phrase choice from an iteration vector.
     pub fn words(&self, the_indexes: &Vec<u64>) -> Vec<&str> {
         let res: Vec<&str> = the_indexes
             .iter()

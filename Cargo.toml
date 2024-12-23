@@ -1,6 +1,6 @@
 [package]
 name = "helium-wallet-recover"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 
 [dependencies]
@@ -9,3 +9,4 @@ helium-wallet = { git = "https://github.com/helium/helium-wallet-rs", package = 
 helium-lib = { git = "https://github.com/helium/helium-wallet-rs", package = "helium-lib" }
 anyhow = "1.0.94"
 fuzzt = "0.3.1"
+itertools = "0.13.0"

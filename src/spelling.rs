@@ -36,6 +36,7 @@ impl AlternativeTable {
 #[cfg(test)]
 mod test {
     use super::*;
+    use helium_mnemonic::Language;
 
     #[test]
     fn it_works() {
@@ -43,6 +44,23 @@ mod test {
         let x = gen.alternatives("able").unwrap();
         for word in x {
             println!("{}", word);
+        }
+    }
+
+    #[test]
+    fn generate_md_table() {
+        let gen = AlternativeTable::new(1);
+        println!("|Word|Alternatives|");
+        println!("|---|---|");
+        for j in 0..2048 {
+            let word = &Language::English[j as usize];
+            let with_alternates = gen.alternatives(word).expect("huh?");
+            if with_alternates.len() < 2 {
+                continue
+            }
+            let alternates: Vec<String> = with_alternates
+                .iter().skip(1).map(|x| x.to_owned()).collect();
+            println!("|{}|{}|", word, alternates.join(" "));
         }
     }
 }
