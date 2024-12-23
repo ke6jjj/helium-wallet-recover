@@ -77,7 +77,79 @@ Options, if specified, must _precede_ all other command line arguments.
   the name of their Hotspot and can find the public key of its owning
   wallet, for example.
 
-## Misspelling Suggestions
+# Fully-Worked Example
+
+To understand what this tool does, it may be helpful to illustrate an example
+scenario, showing an original phrase, how someone mistakenly copied it to
+paper, and how the tool successfully finds the original phrase.
+
+## Original Phase
+
+In this example we'll use the original phrase
+
+```
+lend abandon nest benefit ride clever cave divide stem fetch tunnel hedgehog
+```
+
+When properly entered, this phrase yields a wallet with public key
+`4z6yQY4RSqY7yRCsQhXiUXvbKRn96ssH2eKzgkNr1Gbr`
+
+## First Error: Row-wise Transcription
+
+In this example we've have the user commit their first major error: disregarding
+the numbering of the words and, instead, writing them down left-to-right,
+rather than downward in two columns. This yields a backup card that reads:
+
+|||||
+|---|---|---|---|
+|1|lend     |7| abandon|
+|2|nest     |8| benefit|
+|3|ride     |9| clever|
+|4|cave     |10|divide|
+|5|stem     |11|fetch|
+|6|tunnel   |12|hedgehog|
+
+## Second Error: Misspellings
+
+Next we'll have the user make two spelling errors: substituting "_next_" for "nest"
+and "_cake_" for "cave". This yields a backup card that reads:
+
+|||||
+|---|---|---|---|
+|1|lend     |7| abandon|
+|2|**next** |8| benefit|
+|3|ride     |9| clever|
+|4|**cake** |10|divide|
+|5|stem     |11|fetch|
+|6|tunnel   |12|hedgehog|
+
+Now, when the user attempts to restore the wallet with this corrupted card
+they enter in the phrase
+
+```
+lend next ride cake stem tunnel abandon benefit clever divide fetch hedgehog
+```
+
+which does not pass the checksum test, and cannot be recovered.
+
+## Automated Correction via Search
+
+Now we'll examine what happens when the user uses this tool to recover the
+_original_ phrase.
+
+1. First, using help from a blockchain explorer or other means, the
+   user determines that the original public key was `4z6yQY4RSqY7yRCsQhXiUXvbKRn96ssH2eKzgkNr1Gbr`
+
+2. The user invokes the utility:
+   ```
+   ./helium-wallet-recover -t 4z6yQY4RSqY7yRCsQhXiUXvbKRn96ssH2eKzgkNr1Gbr lend next ride cake stem tunnel abandon benefit clever divide fetch hedgehog
+   ```
+3. The utility successfully recovers the original phrase after 1167 attempts:
+   ```
+   1167. lend abandon nest benefit ride clever cave divide stem fetch tunnel hedgehog: FOUND 4z6yQY4RSqY7yRCsQhXiUXvbKRn96ssH2eKzgkNr1Gbr
+   ```
+
+# Misspelling Suggestions
 
 The following table is a list of misspellings of BIP-39 seed phrase words
 that themselves are also valid words. Use this list to come up with
