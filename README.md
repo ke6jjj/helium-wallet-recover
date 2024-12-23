@@ -15,6 +15,21 @@ The recovery method tries exhaustive combinations of these mistakes:
 6. The word list was written down column-wise, but with the
    columns inadvertantly swapped.
 
+## Caveats
+
+This tool only searches for wallets produced using the _original Helium
+derivation path, aka "L1" path_. It does not implement the standard Solana
+derivation path. Only use this tool if you know that the wallet was created
+with the standard Helium wallet tool or app, and was created before the
+app started providing the standard derivation path.
+
+A good rule of thumb to know whether your wallet is L1-derived or not is
+to check the date on which it was created. If it was created before the
+Helium->Solana transition on 2023-04-18, it is almost certainly L1-derived.
+
+After that date, however, you'll have to check the provenence of the
+Solana-derivation feature in the wallet app. (TODO)
+
 # Building
 
 TBD. This is a rust project and can be built with `cargo build --release`.
