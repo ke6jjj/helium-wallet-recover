@@ -1,3 +1,4 @@
+
 use super::spelling::AlternativeTable;
 use anyhow::{Result, anyhow};
 use helium_mnemonic::Language;
@@ -7,19 +8,21 @@ pub struct Combinator {
     plan: Vec<Vec<String>>,
 }
 
-pub struct RadixIterator {
+pub struct CombinatorIterator<'a> {
+    combinator: &'a Combinator,
     i: u64,
     max: u64,
     radix: Vec<u64>,
 }
 
-impl RadixIterator {
-    pub fn new(radix: &Vec<u64>) -> Self {
+impl<'a> CombinatorIterator<'a> {
+    fn new(radix: &Vec<u64>, combinator: &'a Combinator) -> Self {
         let mut max: u64 = 1;
         for v in radix.iter() {
             max *= v
         }
         Self {
+            combinator,
             i: 0,
             max: max, 
             radix: radix.clone(),
@@ -42,8 +45,8 @@ impl RadixIterator {
     }
 }
 
-impl Iterator for RadixIterator {
-    type Item = Vec<u64>;
+impl<'a> Iterator for CombinatorIterator<'a> {
+    type Item = Vec<&'a str>;
 
     fn next(&mut self) -> Option<Self::Item> {
         if self.i == self.max {
@@ -51,7 +54,7 @@ impl Iterator for RadixIterator {
         }
         let r = self.sequence_from_index(self.i);
         self.i += 1;
-        Some(r)
+        Some(self.combinator.words(&r))
     }
 }
 
@@ -84,13 +87,13 @@ impl Combinator {
     /// Yield an iterator which iterates over all the different combinations
     /// of word choices for the full phrase given, allowing for the number
     /// plausible mistakes per-word given.
-    pub fn choice_iter(&self) -> RadixIterator {
+    pub fn iter(&self) -> CombinatorIterator {
         let substitions_by_word: Vec<u64> = self
             .plan
             .iter()
             .map(|plan| plan.len() as u64)
             .collect();
-        RadixIterator::new(&substitions_by_word)
+        CombinatorIterator::new(&substitions_by_word, self)
     }
 
     /// Construct a phrase choice from an iteration vector.

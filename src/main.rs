@@ -70,7 +70,7 @@ fn main() -> Result<()> {
         .context("error with word list")?;
     v.show(|| println!("done."));
 
-    let alternatives = spelling_alternatives.choice_iter();
+    let alternatives = spelling_alternatives.iter();
     let mistaken_readings = generate_readings(12)?;
     let total_combinations = alternatives.size() * (mistaken_readings.len() as u64);
     v.show(|| println!("Trying {} combinations.", total_combinations));
@@ -81,8 +81,7 @@ fn main() -> Result<()> {
 
     let mut i = 1;
 
-    for spelling_vec in alternatives {
-        let words = spelling_alternatives.words(&spelling_vec);
+    for words in alternatives {
         for reading_vec in mistaken_readings.iter() {
             let reading: Vec<String> = 
                 reading_vec
