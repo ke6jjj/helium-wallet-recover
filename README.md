@@ -91,7 +91,19 @@ In this example we'll use the original phrase
 lend abandon nest benefit ride clever cave divide stem fetch tunnel hedgehog
 ```
 
-When properly entered, this phrase yields a wallet with public key
+When properly written down on a backup card, the result looks like
+this:
+
+|||||
+|---|---|---|---|
+|1|lend    |7| cave|
+|2|abandon |8| divide|
+|3|nest    |9| stem|
+|4|benefit |10|fetch|
+|5|ride    |11|tunnel|
+|6|clever  |12|hedgehog|
+
+And when properly entered, this phrase yields a wallet with public key
 `4z6yQY4RSqY7yRCsQhXiUXvbKRn96ssH2eKzgkNr1Gbr`
 
 ## First Error: Row-wise Transcription
