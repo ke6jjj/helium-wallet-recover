@@ -77,15 +77,15 @@ fn main() -> Result<()> {
         return Err(anyhow!("Incorrect number of seed words. Need 12."));
     }
 
-    v.show(|| print!("Building word distance dictionary with limit {}...", args.distance));
+    v.show(|| eprint!("Building word distance dictionary with limit {}...", args.distance));
     let spelling_alternatives = Combinator::new_from_list(&seed_words, 1)
-        .context("error with word list")?;
-    v.show(|| println!("done."));
+        .context("Seed phrase unusable")?;
+    v.show(|| eprintln!("done."));
 
     let alternatives = spelling_alternatives.iter();
     let mistaken_readings = generate_readings(12)?;
     let total_combinations = alternatives.size() * (mistaken_readings.len() as u64);
-    v.show(|| println!("Trying {} combinations.", total_combinations));
+    v.show(|| eprintln!("Trying {} combinations.", total_combinations));
 
     if args.dry_run {
         return Ok(())
@@ -101,13 +101,13 @@ fn main() -> Result<()> {
             match keypair_res {
                 Ok(keypair) => {
                     let pubkey = keypair.pubkey();
-                    t.show(|| println!("{i}. {}: OK {}", as_single_string, pubkey.to_string()));
+                    t.show(|| eprintln!("{i}. {}: OK {}", as_single_string, pubkey.to_string()));
                     if args.target.is_some_and(|t| t == pubkey) {
                         println!("{i}. {}: FOUND {}", as_single_string, pubkey.to_string());
                         return Ok(())
                     }
                 },
-                Err(Error::Mnemonic(MnmemonicError::InvalidChecksum)) => v.show(|| println!("{i}. {}: XX Invalid", as_single_string)),
+                Err(Error::Mnemonic(MnmemonicError::InvalidChecksum)) => v.show(|| eprintln!("{i}. {}: XX Invalid", as_single_string)),
                 other => { other.context("decoding key")?; () }
             }
             i += 1
