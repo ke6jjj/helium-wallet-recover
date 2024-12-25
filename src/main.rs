@@ -55,6 +55,18 @@ impl Verbosity {
     }
 }
 
+/// Given a nominal reading of a seed phrase, return an alternate reading
+/// of the phrase, with the words swapped according to the provided reading
+/// order schedule.
+fn phrase_from_misreading(phrase: &Vec<&str>, reading_order: &Vec<u8>) -> Vec<String> {
+    let reassembled: Vec<String> = 
+        reading_order
+        .iter()
+        .map(|position| phrase[*position as usize].to_owned())
+        .collect();
+    reassembled
+}
+
 fn main() -> Result<()> {
     let args = Cli::parse();
     let seed_words: Vec<&str> = args.words.iter().map(|x| x.as_str()).collect();
@@ -81,25 +93,21 @@ fn main() -> Result<()> {
 
     let mut i = 1;
 
-    for words in alternatives {
-        for reading_vec in mistaken_readings.iter() {
-            let reading: Vec<String> = 
-                reading_vec
-                .iter()
-                .map(|position| words[*position as usize].to_owned())
-                .collect();
-            let keypair_res = helium_lib::keypair::Keypair::from_words(reading.clone());
-            let phrase = reading.join(" ");
+    for alternative_phrase in alternatives {
+        for reading in mistaken_readings.iter() {
+            let candidate_phrase = phrase_from_misreading(&alternative_phrase, reading);
+            let keypair_res = helium_lib::keypair::Keypair::from_words(candidate_phrase.clone());
+            let as_single_string = candidate_phrase.join(" ");
             match keypair_res {
                 Ok(keypair) => {
                     let pubkey = keypair.pubkey();
-                    t.show(|| println!("{i}. {}: OK {}", phrase, pubkey.to_string()));
+                    t.show(|| println!("{i}. {}: OK {}", as_single_string, pubkey.to_string()));
                     if args.target.is_some_and(|t| t == pubkey) {
-                        println!("{i}. {}: FOUND {}", phrase, pubkey.to_string());
+                        println!("{i}. {}: FOUND {}", as_single_string, pubkey.to_string());
                         return Ok(())
                     }
                 },
-                Err(Error::Mnemonic(MnmemonicError::InvalidChecksum)) => v.show(|| println!("{i}. {}: XX Invalid", phrase)),
+                Err(Error::Mnemonic(MnmemonicError::InvalidChecksum)) => v.show(|| println!("{i}. {}: XX Invalid", as_single_string)),
                 other => { other.context("decoding key")?; () }
             }
             i += 1
