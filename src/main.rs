@@ -2,10 +2,11 @@ mod spelling;
 mod combinator;
 mod reading;
 
-use combinator::Combinator;
+use combinator::{Combinator, CombinatorIterator};
 use helium_lib::keypair::{Pubkey, Signer};
 use helium_lib::error::Error;
 use helium_mnemonic::MnmemonicError;
+use itertools::Itertools;
 use reading::generate_readings;
 use anyhow::{anyhow, Context, Result};
 use clap::Parser;
@@ -78,40 +79,62 @@ fn main() -> Result<()> {
     }
 
     v.show(|| eprint!("Building word distance dictionary with limit {}...", args.distance));
-    let spelling_alternatives = Combinator::new_from_list(&seed_words, 1)
+    let spellings = Combinator::new_from_list(&seed_words, 1)
         .context("Seed phrase unusable")?;
     v.show(|| eprintln!("done."));
 
-    let alternatives = spelling_alternatives.iter();
     let mistaken_readings = generate_readings(12)?;
-    let total_combinations = alternatives.size() * (mistaken_readings.len() as u64);
+    let total_combinations = spellings.size() * (mistaken_readings.len() as u64);
     v.show(|| eprintln!("Trying {} combinations.", total_combinations));
 
     if args.dry_run {
         return Ok(())
     }
 
-    let mut i = 1;
+    let phrases = PhraseIterator::new(&spellings, &mistaken_readings);
 
-    for alternative_phrase in alternatives {
-        for reading in mistaken_readings.iter() {
-            let candidate_phrase = phrase_from_misreading(&alternative_phrase, reading);
-            let keypair_res = helium_lib::keypair::Keypair::from_words(candidate_phrase.clone());
-            let as_single_string = candidate_phrase.join(" ");
-            match keypair_res {
-                Ok(keypair) => {
-                    let pubkey = keypair.pubkey();
-                    t.show(|| eprintln!("{i}. {}: OK {}", as_single_string, pubkey.to_string()));
-                    if args.target.is_some_and(|t| t == pubkey) {
-                        println!("{i}. {}: FOUND {}", as_single_string, pubkey.to_string());
-                        return Ok(())
-                    }
-                },
-                Err(Error::Mnemonic(MnmemonicError::InvalidChecksum)) => v.show(|| eprintln!("{i}. {}: XX Invalid", as_single_string)),
-                other => { other.context("decoding key")?; () }
-            }
-            i += 1
+    for (j, candidate_phrase) in phrases.enumerate() {
+        let i = j + 1;
+        let keypair_res = helium_lib::keypair::Keypair::from_words(candidate_phrase.clone());
+        let as_single_string = candidate_phrase.join(" ");
+        match keypair_res {
+            Ok(keypair) => {
+                let pubkey = keypair.pubkey();
+                t.show(|| eprintln!("{i}. {}: OK {}", as_single_string, pubkey.to_string()));
+                if args.target.is_some_and(|t| t == pubkey) {
+                    println!("{i}. {}: FOUND {}", as_single_string, pubkey.to_string());
+                    return Ok(())
+                }
+            },
+            Err(Error::Mnemonic(MnmemonicError::InvalidChecksum)) => v.show(|| eprintln!("{i}. {}: XX Invalid", as_single_string)),
+            other => { other.context("decoding key")?; () }
         }
     }
-    Ok(())
+
+    if args.target.is_some() {
+        return Err(anyhow!("couldn't find a match for target"));
+    }
+    return Ok(())
+}
+
+struct PhraseIterator<'a> {
+    inner: itertools::Product<CombinatorIterator<'a>, core::slice::Iter<'a, Vec<u8>>>,
+}
+
+impl<'a> PhraseIterator<'a> {
+    pub fn new(spellings: &'a Combinator, readings: &'a Vec<Vec<u8>>) -> Self {
+        Self {
+            inner: spellings.iter().cartesian_product(readings.iter())
+        }
+    }
+}
+
+impl<'a> Iterator for PhraseIterator<'a> {
+    type Item = Vec<String>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.inner
+            .next()
+            .map(|(phrase, reading)| phrase_from_misreading(&phrase, reading))
+    }
 }

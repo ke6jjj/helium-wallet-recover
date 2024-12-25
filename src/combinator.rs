@@ -22,19 +22,18 @@ pub struct CombinatorIterator<'a> {
 }
 
 impl<'a> CombinatorIterator<'a> {
-    fn new(combinator: &'a Combinator, radix: Vec<u64>) -> Self {
-        // Compute the product of all the choices that could be made.
-        let max = radix.iter().fold(1, |res, a| res * a);
+    fn new(combinator: &'a Combinator) -> Self {
+        let radix: Vec<u64> = combinator
+            .plan
+            .iter()
+            .map(|plan| plan.len() as u64)
+            .collect();
         Self {
             combinator,
             i: 0,
-            max, 
+            max: combinator.size() as u64, 
             radix,
         }
-    }
-
-    pub fn size(&self) -> u64 {
-        self.max
     }
 }
 
@@ -93,16 +92,16 @@ impl Combinator {
         })
     }
 
+    pub fn size(&self) -> u64 {
+        // Compute the product of all the choices that could be made.
+        return self.plan.iter().fold(1 as u64, |res, a| res * (a.len() as u64));
+    }
+
     /// Yield an iterator which iterates over all the different combinations
     /// of word choices for the full phrase given, allowing for the number
     /// plausible mistakes per-word given.
     pub fn iter(&self) -> CombinatorIterator {
-        let substitions_by_word: Vec<u64> = self
-            .plan
-            .iter()
-            .map(|plan| plan.len() as u64)
-            .collect();
-        CombinatorIterator::new(self, substitions_by_word)
+        CombinatorIterator::new(self)
     }
 }
 
