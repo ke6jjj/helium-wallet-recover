@@ -16,7 +16,13 @@
 /// the wrong order.
 ///
 use itertools::Itertools;
-use anyhow::{Result, anyhow};
+use thiserror::Error;
+
+#[derive(Error, Debug)]
+pub enum ReadingError {
+    #[error("number of words in reading must be even")]
+    WordsUneven,
+}
 
 /// Produce a reading where the columns are written in the wrong order
 /// (second column first, first column second)
@@ -46,9 +52,9 @@ fn read_rowise(v: &Vec<u8>) -> Vec<u8> {
     res
 }
 
-pub fn generate_readings(num_words: u8) -> Result<Vec<Vec<u8>>> {
+pub fn generate_readings(num_words: u8) -> Result<Vec<Vec<u8>>,ReadingError> {
     if num_words % 2 != 0 {
-        return Err(anyhow!("number of words must be even"));
+        return Err(ReadingError::WordsUneven);
     }
     let base: Vec<u8> = (0..num_words).collect();
     let mut res: Vec<Vec<u8>> = Vec::new();
@@ -61,6 +67,8 @@ pub fn generate_readings(num_words: u8) -> Result<Vec<Vec<u8>>> {
 
 #[cfg(test)]
 mod test {
+
+    use crate::reading::ReadingError;
 
     use super::generate_readings;
 
@@ -79,5 +87,13 @@ mod test {
             }
             println!("]")
         }
+    }
+
+    #[test]
+    fn angry() {
+        assert!(match generate_readings(11) {
+            Err(ReadingError::WordsUneven) => true,
+            Ok(_) => false,
+        });
     }
 }
