@@ -4,9 +4,9 @@ version = "0.3.1"
 edition = "2021"
 
 [dependencies]
-helium-mnemonic = { git = "https://github.com/helium/helium-wallet-rs", package = "helium-mnemonic" }
-helium-wallet = { git = "https://github.com/helium/helium-wallet-rs", package = "helium-wallet" }
-helium-lib = { git = "https://github.com/helium/helium-wallet-rs", package = "helium-lib" }
+helium-mnemonic = { version = "0.0.1-rc.1", git = "https://github.com/helium/helium-wallet-rs", package = "helium-mnemonic" }
+helium-wallet = { version = "2.1.1", git = "https://github.com/helium/helium-wallet-rs", package = "helium-wallet" }
+helium-lib = { version = "0.1.1", git = "https://github.com/helium/helium-wallet-rs", package = "helium-lib" }
 anyhow = "1.0.94"
 fuzzt = "0.3.1"
 itertools = "0.13.0"

@@ -58,11 +58,11 @@ impl Verbosity {
 /// Given a nominal reading of a seed phrase, return an alternate reading
 /// of the phrase, with the words swapped according to the provided reading
 /// order schedule.
-fn phrase_from_misreading(phrase: &Vec<&str>, reading_order: &Vec<u8>) -> Vec<String> {
-    let reassembled: Vec<String> = 
+fn phrase_from_misreading<'a>(phrase: &Vec<&'a str>, reading_order: &Vec<u8>) -> Vec<&'a str> {
+    let reassembled: Vec<&str> = 
         reading_order
         .iter()
-        .map(|position| phrase[*position as usize].to_owned())
+        .map(|&position| phrase[position as usize])
         .collect();
     reassembled
 }
@@ -96,7 +96,7 @@ fn main() -> Result<()> {
     for alternative_phrase in alternatives {
         for reading in mistaken_readings.iter() {
             let candidate_phrase = phrase_from_misreading(&alternative_phrase, reading);
-            let keypair_res = helium_lib::keypair::Keypair::from_words(candidate_phrase.clone());
+            let keypair_res = helium_lib::keypair::Keypair::from_words(&candidate_phrase);
             let as_single_string = candidate_phrase.join(" ");
             match keypair_res {
                 Ok(keypair) => {
