@@ -1,20 +1,20 @@
-mod spelling;
 mod combinator;
 mod reading;
+mod spelling;
 
-use combinator::Combinator;
-use helium_lib::keypair::{Pubkey, Signer};
-use helium_lib::error::Error;
-use helium_mnemonic::MnmemonicError;
-use reading::generate_readings;
 use anyhow::{anyhow, Context, Result};
 use clap::Parser;
+use combinator::Combinator;
+use helium_lib::error::Error;
+use helium_lib::keypair::{Pubkey, Signer};
+use helium_mnemonic::MnmemonicError;
+use reading::generate_readings;
 
 #[derive(Debug, Parser)]
 #[command(version = env!("CARGO_PKG_VERSION"))]
 #[command(name = env!("CARGO_BIN_NAME"))]
 /// Exhaustive search to recover seed phrase mispellings for Helium L1 wallets.
-/// 
+///
 /// This program allows one to attempt to recover a Helium wallet from a
 /// mnemonic seed phrase that has misspellings and/or was written down
 /// in the wrong order.
@@ -36,11 +36,11 @@ pub struct Cli {
     dry_run: bool,
 
     /// Passphrase seed words
-    words: Vec<String>
+    words: Vec<String>,
 }
 
 struct Verbosity {
-    verbose: bool
+    verbose: bool,
 }
 
 impl Verbosity {
@@ -59,8 +59,7 @@ impl Verbosity {
 /// of the phrase, with the words swapped according to the provided reading
 /// order schedule.
 fn phrase_from_misreading<'a>(phrase: &Vec<&'a str>, reading_order: &Vec<u8>) -> Vec<&'a str> {
-    let reassembled: Vec<&str> = 
-        reading_order
+    let reassembled: Vec<&str> = reading_order
         .iter()
         .map(|&position| phrase[position as usize])
         .collect();
@@ -77,9 +76,14 @@ fn main() -> Result<()> {
         return Err(anyhow!("Incorrect number of seed words. Need 12."));
     }
 
-    v.show(|| eprint!("Building word distance dictionary with limit {}...", args.distance));
-    let spelling_alternatives = Combinator::new_from_list(&seed_words, 1)
-        .context("Seed phrase unusable")?;
+    v.show(|| {
+        eprint!(
+            "Building word distance dictionary with limit {}...",
+            args.distance
+        )
+    });
+    let spelling_alternatives =
+        Combinator::new_from_list(&seed_words, 1).context("Seed phrase unusable")?;
     v.show(|| eprintln!("done."));
 
     let alternatives = spelling_alternatives.iter();
@@ -88,7 +92,7 @@ fn main() -> Result<()> {
     v.show(|| eprintln!("Trying {} combinations.", total_combinations));
 
     if args.dry_run {
-        return Ok(())
+        return Ok(());
     }
 
     let mut i = 1;
@@ -104,11 +108,16 @@ fn main() -> Result<()> {
                     t.show(|| eprintln!("{i}. {}: OK {}", as_single_string, pubkey.to_string()));
                     if args.target.is_some_and(|t| t == pubkey) {
                         println!("{i}. {}: FOUND {}", as_single_string, pubkey.to_string());
-                        return Ok(())
+                        return Ok(());
                     }
-                },
-                Err(Error::Mnemonic(MnmemonicError::InvalidChecksum)) => v.show(|| eprintln!("{i}. {}: XX Invalid", as_single_string)),
-                other => { other.context("decoding key")?; () }
+                }
+                Err(Error::Mnemonic(MnmemonicError::InvalidChecksum)) => {
+                    v.show(|| eprintln!("{i}. {}: XX Invalid", as_single_string))
+                }
+                other => {
+                    other.context("decoding key")?;
+                    ()
+                }
             }
             i += 1
         }

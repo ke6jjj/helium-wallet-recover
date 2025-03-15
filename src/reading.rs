@@ -29,11 +29,7 @@ pub enum ReadingError {
 fn transpose_columns(v: &Vec<u8>) -> Vec<u8> {
     let len = v.len() as u8;
     let column_len = len / 2;
-    let res: Vec<u8> =
-        v
-        .iter()
-        .map(|x| ((*x) + column_len) % len)
-        .collect();
+    let res: Vec<u8> = v.iter().map(|x| ((*x) + column_len) % len).collect();
     res
 }
 
@@ -43,8 +39,7 @@ fn read_rowise(v: &Vec<u8>) -> Vec<u8> {
     let column_len = len / 2;
     let column_a = &v[0..column_len];
     let column_b = &v[column_len..len];
-    let res: Vec<u8> = 
-        column_a
+    let res: Vec<u8> = column_a
         .iter()
         .interleave(column_b.iter())
         .map(|x| *x)
@@ -52,7 +47,7 @@ fn read_rowise(v: &Vec<u8>) -> Vec<u8> {
     res
 }
 
-pub fn generate_readings(num_words: u8) -> Result<Vec<Vec<u8>>,ReadingError> {
+pub fn generate_readings(num_words: u8) -> Result<Vec<Vec<u8>>, ReadingError> {
     if num_words % 2 != 0 {
         return Err(ReadingError::WordsUneven);
     }

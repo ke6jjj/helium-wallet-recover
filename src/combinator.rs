@@ -1,4 +1,3 @@
-
 use super::spelling::AlternativeTable;
 use helium_mnemonic::Language;
 use itertools::Itertools;
@@ -28,7 +27,7 @@ impl<'a> CombinatorIterator<'a> {
         Self {
             combinator,
             i: 0,
-            max, 
+            max,
             radix,
         }
     }
@@ -44,18 +43,18 @@ impl<'a> Iterator for CombinatorIterator<'a> {
     fn next(&mut self) -> Option<Self::Item> {
         let mut i = self.i;
         if i == self.max {
-            return None
+            return None;
         }
         let mut r: Vec<&str> = Vec::with_capacity(self.radix.len());
         r.extend(
             self.radix
-            .iter()
-            .zip_eq(&self.combinator.plan)
-            .map(|(depth, alternatives)| {
-                let word_choice = i % *depth;
-                i = i / *depth;
-                alternatives[word_choice as usize].as_str()
-            })
+                .iter()
+                .zip_eq(&self.combinator.plan)
+                .map(|(depth, alternatives)| {
+                    let word_choice = i % *depth;
+                    i = i / *depth;
+                    alternatives[word_choice as usize].as_str()
+                }),
         );
         self.i += 1;
         Some(r)
@@ -65,43 +64,31 @@ impl<'a> Iterator for CombinatorIterator<'a> {
 impl Combinator {
     pub fn new_from_list(list: &Vec<&str>, distance: usize) -> Result<Combinator, CombinatorError> {
         let english = Language::English;
-        list
-            .iter()
-            .enumerate()
-            .try_for_each(|(idx, &word)| {
-                english
-                    .find_word(word)
-                    .map(|_| ())
-                    .ok_or_else(|| CombinatorError::InvalidSeedWord(idx, word.to_string()))
-            })?;
+        list.iter().enumerate().try_for_each(|(idx, &word)| {
+            english
+                .find_word(word)
+                .map(|_| ())
+                .ok_or_else(|| CombinatorError::InvalidSeedWord(idx, word.to_string()))
+        })?;
         let x = AlternativeTable::new(distance);
         let mut word_plan: Vec<Vec<String>> = Vec::with_capacity(list.len());
-        word_plan.extend(
-            list
-            .iter()
-            .map(|&word| {
-                x.alternatives(word)
-                    .unwrap()
-                    .iter()
-                    .map(|x| x.to_owned())
-                    .collect()
-            })
-        );
-        
-        Ok(Combinator {
-            plan: word_plan,
-        })
+        word_plan.extend(list.iter().map(|&word| {
+            x.alternatives(word)
+                .unwrap()
+                .iter()
+                .map(|x| x.to_owned())
+                .collect()
+        }));
+
+        Ok(Combinator { plan: word_plan })
     }
 
     /// Yield an iterator which iterates over all the different combinations
     /// of word choices for the full phrase given, allowing for the number
     /// plausible mistakes per-word given.
     pub fn iter(&self) -> CombinatorIterator {
-        let substitions_by_word: Vec<u64> = self
-            .plan
-            .iter()
-            .map(|plan| plan.len() as u64)
-            .collect();
+        let substitions_by_word: Vec<u64> =
+            self.plan.iter().map(|plan| plan.len() as u64).collect();
         CombinatorIterator::new(self, substitions_by_word)
     }
 }
@@ -114,22 +101,21 @@ mod test {
 
     #[test]
     fn test_one() {
-        let combo = Combinator::new_from_list(&vec![ "derp" ], 1);
+        let combo = Combinator::new_from_list(&vec!["derp"], 1);
         assert!(combo.is_err())
     }
 
     #[test]
     fn test_error_locator() {
-        let combo_res = Combinator::new_from_list(&vec![ "tiny", "derp" ], 1);
+        let combo_res = Combinator::new_from_list(&vec!["tiny", "derp"], 1);
         let ok = match combo_res {
             Err(CombinatorError::InvalidSeedWord(idx, word)) => {
                 assert_eq!(idx, 1);
                 assert_eq!(word, "derp");
                 true
-            },
-            Ok(_) => false
+            }
+            Ok(_) => false,
         };
         assert!(ok)
     }
-
 }
