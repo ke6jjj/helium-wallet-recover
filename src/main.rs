@@ -58,7 +58,7 @@ impl Verbosity {
 /// Given a nominal reading of a seed phrase, return an alternate reading
 /// of the phrase, with the words swapped according to the provided reading
 /// order schedule.
-fn phrase_from_misreading<'a>(phrase: &Vec<&'a str>, reading_order: &Vec<u8>) -> Vec<&'a str> {
+fn phrase_from_misreading<'a>(phrase: &[ &'a str], reading_order: &[u8]) -> Vec<&'a str> {
     let reassembled: Vec<&str> = reading_order
         .iter()
         .map(|&position| phrase[position as usize])
