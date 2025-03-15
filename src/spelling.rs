@@ -1,9 +1,9 @@
-use std::collections::HashMap;
-use helium_mnemonic::Language;
 use fuzzt::algorithms::damerau_levenshtein;
+use helium_mnemonic::Language;
+use std::collections::HashMap;
 
 pub struct AlternativeTable {
-    map: HashMap<String, Vec<String>>
+    map: HashMap<String, Vec<String>>,
 }
 
 impl AlternativeTable {
@@ -15,7 +15,7 @@ impl AlternativeTable {
             words.push(a.to_owned());
             for j in 0..2048 {
                 if j == i {
-                    continue
+                    continue;
                 }
                 let b = &Language::English[j as usize];
                 let distance = damerau_levenshtein(a, b);
@@ -56,10 +56,13 @@ mod test {
             let word = &Language::English[j as usize];
             let with_alternates = gen.alternatives(word).expect("huh?");
             if with_alternates.len() < 2 {
-                continue
+                continue;
             }
             let alternates: Vec<String> = with_alternates
-                .iter().skip(1).map(|x| x.to_owned()).collect();
+                .iter()
+                .skip(1)
+                .map(|x| x.to_owned())
+                .collect();
             println!("|{}|{}|", word, alternates.join(" "));
         }
     }

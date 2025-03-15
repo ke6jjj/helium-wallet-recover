@@ -26,42 +26,37 @@ pub enum ReadingError {
 
 /// Produce a reading where the columns are written in the wrong order
 /// (second column first, first column second)
-fn transpose_columns(v: &Vec<u8>) -> Vec<u8> {
+fn transpose_columns(v: &[u8]) -> Vec<u8> {
     let len = v.len() as u8;
     let column_len = len / 2;
-    let res: Vec<u8> =
-        v
-        .iter()
-        .map(|x| ((*x) + column_len) % len)
-        .collect();
+    let res: Vec<u8> = v.iter().map(|x| ((*x) + column_len) % len).collect();
     res
 }
 
 /// Produce a reading where the columns are written down row-wise.
-fn read_rowise(v: &Vec<u8>) -> Vec<u8> {
+fn read_rowise(v: &[u8]) -> Vec<u8> {
     let len = v.len();
     let column_len = len / 2;
     let column_a = &v[0..column_len];
     let column_b = &v[column_len..len];
-    let res: Vec<u8> = 
-        column_a
+    let res: Vec<u8> = column_a
         .iter()
-        .interleave(column_b.iter())
-        .map(|x| *x)
+        .interleave(column_b.iter()).copied()
         .collect();
     res
 }
 
-pub fn generate_readings(num_words: u8) -> Result<Vec<Vec<u8>>,ReadingError> {
+pub fn generate_readings(num_words: u8) -> Result<Vec<Vec<u8>>, ReadingError> {
     if num_words % 2 != 0 {
         return Err(ReadingError::WordsUneven);
     }
     let base: Vec<u8> = (0..num_words).collect();
-    let mut res: Vec<Vec<u8>> = Vec::new();
-    res.push(base.to_owned());
-    res.push(transpose_columns(&base));
-    res.push(read_rowise(&base));
-    res.push(read_rowise(&transpose_columns(&base)));
+    let res = vec![
+        base.to_owned(),
+        transpose_columns(&base),
+        read_rowise(&base),
+        read_rowise(&transpose_columns(&base))
+    ];
     Ok(res)
 }
 
