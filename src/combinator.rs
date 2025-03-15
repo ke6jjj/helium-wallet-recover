@@ -23,7 +23,7 @@ pub struct CombinatorIterator<'a> {
 impl<'a> CombinatorIterator<'a> {
     fn new(combinator: &'a Combinator, radix: Vec<u64>) -> Self {
         // Compute the product of all the choices that could be made.
-        let max = radix.iter().fold(1, |res, a| res * a);
+        let max = radix.iter().product::<u64>();
         Self {
             combinator,
             i: 0,
@@ -52,7 +52,7 @@ impl<'a> Iterator for CombinatorIterator<'a> {
                 .zip_eq(&self.combinator.plan)
                 .map(|(depth, alternatives)| {
                     let word_choice = i % *depth;
-                    i = i / *depth;
+                    i /= *depth;
                     alternatives[word_choice as usize].as_str()
                 }),
         );

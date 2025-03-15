@@ -41,8 +41,7 @@ fn read_rowise(v: &Vec<u8>) -> Vec<u8> {
     let column_b = &v[column_len..len];
     let res: Vec<u8> = column_a
         .iter()
-        .interleave(column_b.iter())
-        .map(|x| *x)
+        .interleave(column_b.iter()).copied()
         .collect();
     res
 }

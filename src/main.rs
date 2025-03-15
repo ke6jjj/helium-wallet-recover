@@ -48,7 +48,7 @@ impl Verbosity {
         Verbosity { verbose: v }
     }
 
-    pub fn show<F: FnOnce() -> ()>(&self, f: F) {
+    pub fn show<F: FnOnce()>(&self, f: F) {
         if self.verbose {
             f()
         }
@@ -105,9 +105,9 @@ fn main() -> Result<()> {
             match keypair_res {
                 Ok(keypair) => {
                     let pubkey = keypair.pubkey();
-                    t.show(|| eprintln!("{i}. {}: OK {}", as_single_string, pubkey.to_string()));
+                    t.show(|| eprintln!("{i}. {}: OK {}", as_single_string, pubkey));
                     if args.target.is_some_and(|t| t == pubkey) {
-                        println!("{i}. {}: FOUND {}", as_single_string, pubkey.to_string());
+                        println!("{i}. {}: FOUND {}", as_single_string, pubkey);
                         return Ok(());
                     }
                 }
@@ -116,7 +116,7 @@ fn main() -> Result<()> {
                 }
                 other => {
                     other.context("decoding key")?;
-                    ()
+                    
                 }
             }
             i += 1
