@@ -41,11 +41,15 @@ fn read_rowise(v: &[u8]) -> Vec<u8> {
     let column_b = &v[column_len..len];
     let res: Vec<u8> = column_a
         .iter()
-        .interleave(column_b.iter()).copied()
+        .interleave(column_b.iter())
+        .copied()
         .collect();
     res
 }
 
+/// Produce a list of common word transposition errors that users have
+/// been observed to make when writing down a seed phrase of a given
+/// length.
 pub fn generate_readings(num_words: u8) -> Result<Vec<Vec<u8>>, ReadingError> {
     if num_words % 2 != 0 {
         return Err(ReadingError::WordsUneven);
@@ -55,7 +59,7 @@ pub fn generate_readings(num_words: u8) -> Result<Vec<Vec<u8>>, ReadingError> {
         base.to_owned(),
         transpose_columns(&base),
         read_rowise(&base),
-        read_rowise(&transpose_columns(&base))
+        read_rowise(&transpose_columns(&base)),
     ];
     Ok(res)
 }

@@ -39,6 +39,8 @@ pub struct Cli {
     words: Vec<String>,
 }
 
+/// A quick, configurable way to conditionally display error/information
+/// messages without cumbersome `if` statements.
 struct Verbosity {
     verbose: bool,
 }
@@ -48,6 +50,7 @@ impl Verbosity {
         Verbosity { verbose: v }
     }
 
+    /// Call the provided callable if verbose is turned on.
     pub fn show<F: FnOnce()>(&self, f: F) {
         if self.verbose {
             f()
@@ -58,7 +61,7 @@ impl Verbosity {
 /// Given a nominal reading of a seed phrase, return an alternate reading
 /// of the phrase, with the words swapped according to the provided reading
 /// order schedule.
-fn phrase_from_misreading<'a>(phrase: &[ &'a str], reading_order: &[u8]) -> Vec<&'a str> {
+fn phrase_from_misreading<'a>(phrase: &[&'a str], reading_order: &[u8]) -> Vec<&'a str> {
     let reassembled: Vec<&str> = reading_order
         .iter()
         .map(|&position| phrase[position as usize])
@@ -116,7 +119,6 @@ fn main() -> Result<()> {
                 }
                 other => {
                     other.context("decoding key")?;
-                    
                 }
             }
             i += 1

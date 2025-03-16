@@ -2,11 +2,16 @@ use fuzzt::algorithms::damerau_levenshtein;
 use helium_mnemonic::Language;
 use std::collections::HashMap;
 
+/// Generates plausible spelling corrections for all English words in the
+/// BIP-39 specification.
 pub struct AlternativeTable {
     map: HashMap<String, Vec<String>>,
 }
 
 impl AlternativeTable {
+    /// Construct a full alternative table for all English seed words in
+    /// the BIP-39 specification, providing alternative spellings for each
+    /// word, up to the configured mispelling distance metric.
     pub fn new(max_distance: usize) -> Self {
         let mut the_map = HashMap::new();
         for i in 0..2048 {
@@ -28,6 +33,8 @@ impl AlternativeTable {
         AlternativeTable { map: the_map }
     }
 
+    /// Return possible alternatives (if any) to the given seed phrase
+    /// word, using the mispelling distance metric previously configured.
     pub fn alternatives(&self, s: &str) -> Option<&Vec<String>> {
         self.map.get(s)
     }

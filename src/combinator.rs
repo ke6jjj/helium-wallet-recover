@@ -9,10 +9,16 @@ pub enum CombinatorError {
     InvalidSeedWord(usize, String),
 }
 
+/// Combinator is a brute force effort planner for seed phrases. Given a
+/// input seed phrase and some parameters, it can generate a schedule of
+/// candidate phrases to that resemble the input phrase but with subtle
+/// changes in word order and spelling.
 pub struct Combinator {
     plan: Vec<Vec<String>>,
 }
 
+/// CombinatorIterator is an iterator which yields candidate seed phrases
+/// from a previously configured combinator.
 pub struct CombinatorIterator<'a> {
     combinator: &'a Combinator,
     i: u64,
@@ -62,6 +68,8 @@ impl<'a> Iterator for CombinatorIterator<'a> {
 }
 
 impl Combinator {
+    /// Generate a brute force schedule given an input phrase and a mispelling
+    /// distance limit.
     pub fn new_from_list(list: &Vec<&str>, distance: usize) -> Result<Combinator, CombinatorError> {
         let english = Language::English;
         list.iter().enumerate().try_for_each(|(idx, &word)| {
